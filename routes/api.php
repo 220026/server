@@ -1,31 +1,21 @@
 <?php
 
-use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
+use App\Http\Controllers\Api\TweetController;
+use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\RegistUserController;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 
-return new class extends Migration
-{
-    /**
-     * Run the migrations.
-     */
-    public function up(): void
-    {
-        Schema::create('tweets', function (Blueprint $table) {
-            $table->id();
-            $table->dateTime('created_at', $precision = 0);
-            $table->dateTime('updated_at', $precision = 0);
-            $table->unsignedBigInteger('user_id');
-            $table->text('message');
-            $table->foreign('user_id')->references('id')->on('users');
-        });
-    }
+//ルーティングのURL：「/api/xxxx」
+// TweetController
+Route::get('/tweet/get', [TweetController::class, 'get']);
+Route::post('/tweet/add', [TweetController::class, 'add']);
 
-    /**
-     * Reverse the migrations.
-     */
-    public function down(): void
-    {
-        Schema::dropIfExists('tweets');
-    }
-};
+Route::post('/regist/store', [RegistUserController::class, 'store']);
+
+// AuthController
+Route::post('/auth', [AuthController::class, 'auth']);
+
+Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
+    return $request->user();
+});

@@ -1,29 +1,34 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Requests;
 
-use App\Http\Controllers\Controller;
-use App\Http\Requests\RegistUserRequest;
+use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Http\Exceptions\HttpResponseException;
 use App\Models\User;
-use Illuminate\Support\Facades\Hash;
 
-class RegistUserController extends Controller
+class RegistUserRequest extends FormRequest
 {
-
-    public function store(RegistUserRequest $request)
+    public function authorize(): bool
     {
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-        ]);
-        if ($user) {
-            $user->remember_token = $user->createToken('auth_token', ['*'], now()->addWeek())->plainTextToken;
-            $user->save();
-            $user->access_token = $user->remember_token;
-            return response()->json(['user' => $user]);
-        } else {
-            return response()->json(['error' => ['message' => 'invalid regist']]);
-        }
+        return true;
+    }
+
+    public function rules(): array
+    {
+        return [
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:' . User::class],
+            'password' => ['required', 'max:255'],
+        ];
+    }
+    public function failedValidation(Validator $validator)
+    {
+        throw new HttpResponseException(response()->json(
+            [
+                'message' => 'Validation errors',
+                'error' => $validator->errors(),
+            ]
+        ));
     }
 }
